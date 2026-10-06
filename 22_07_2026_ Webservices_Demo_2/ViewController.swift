@@ -11,7 +11,6 @@ class ViewController: UIViewController {
     
     var apiResponse : APIResponse?
     var comments : [Comment] = []
-
     var urlRequest : URLRequest?
     var urlSession : URLSession?
     
@@ -30,6 +29,46 @@ class ViewController: UIViewController {
             print("data : \(data)")
             print("response : \(res)")
             print("error : \(err)")
+            
+            do{
+                var jsonResponse = try JSONSerialization.jsonObject(with: data!) as? [String : Any]
+                print("-----------------------------")
+                print(jsonResponse!)
+                let commentsResponse = jsonResponse!["comments"] as? [[String : Any]]
+                
+                let total = jsonResponse!["total"] as? Int
+                let skip = jsonResponse!["skip"] as? Int
+                let limit = jsonResponse!["limit"] as? Int
+                
+                for eachComment in commentsResponse!{
+                    let eachCommentId = eachComment["id"] as? Int
+                    let eachCommentBody = eachComment["body"] as? String
+                    let eachCommentPostId = eachComment["postId"] as? Int
+                    let eachCommentLikes = eachComment["likes"] as? Int
+                    
+                    let eachCommentUser = eachComment["user"] as? [String:Any]
+                    
+                    let eachUserId = eachCommentUser!["id"] as? Int
+                    let eachUserUsername = eachCommentUser!["username"] as? String
+                    let eachUserFullName = eachCommentUser!["fullName"] as? String
+                    
+                    let userObject = User(id: eachUserId!,
+                                          username: eachUserUsername!,
+                                          fullName: eachUserFullName!)
+                    
+                    let commentObject = Comment(id: eachCommentId!,
+                                                body: eachCommentBody!,
+                                                postId: eachCommentPostId!,
+                                                likes: eachCommentLikes!,
+                                                user: userObject)
+                    
+                    self.comments.append(commentObject)
+                    print("------comments array-------")
+                    print(self.comments)
+                }
+            }catch{
+                print("Error")
+            }
         }
         dataTask?.resume()
     }
