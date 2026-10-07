@@ -13,11 +13,26 @@ class ViewController: UIViewController {
     var comments : [Comment] = []
     var urlRequest : URLRequest?
     var urlSession : URLSession?
+    let reuseIdentifierForCommentsTableViewCell = "CommentsTableViewCell"
+    
+    @IBOutlet weak var commentsTableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         print("view did load")
         jsonParsing()
+        initViews()
+        registerCellWithTableView()
+    }
+    
+    func registerCellWithTableView(){
+        let uiNib = UINib(nibName: reuseIdentifierForCommentsTableViewCell, bundle: nil)
+        self.commentsTableView.register(uiNib, forCellReuseIdentifier: reuseIdentifierForCommentsTableViewCell)
+    }
+    
+    func initViews(){
+        commentsTableView.delegate = self
+        commentsTableView.dataSource = self
     }
     
     func jsonParsing(){
@@ -69,7 +84,32 @@ class ViewController: UIViewController {
             }catch{
                 print("Error")
             }
+            DispatchQueue.main.async {
+                self.commentsTableView.reloadData()
+            }
         }
         dataTask?.resume()
+    }
+}
+
+
+extension ViewController : UITableViewDataSource{
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        comments.count
+    }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let commentsTableViewCell = self.commentsTableView.dequeueReusableCell(withIdentifier: reuseIdentifierForCommentsTableViewCell, for: indexPath) as? CommentsTableViewCell
+        
+        commentsTableViewCell?.commentBodyLabel.text = comments[indexPath.row].body
+        commentsTableViewCell?.commentLikesLabel.text = "\(comments[indexPath.row].likes)"
+        commentsTableViewCell?.userFullNameLabel.text = comments[indexPath.row].user.fullName
+        return commentsTableViewCell!
+    }
+}
+
+
+extension ViewController : UITableViewDelegate{
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 120.0
     }
 }
